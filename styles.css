@@ -492,7 +492,7 @@ section{padding:82px 0}
   .nav::-webkit-scrollbar{display:none}
   .nav a{
     flex:0 0 auto;
-    min-height:34px;
+    min-height:40px;
     display:inline-flex;
     align-items:center;
   }
