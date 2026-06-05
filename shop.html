@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shop Rush Hour Beauty - Beauty Essentials</title>
+  <meta name="description" content="Shop Rush Hour Beauty products directly from our website with convenient courier delivery.">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://rushhourbeauty.co.za/shop.html">
+  <link rel="icon" type="image/png" href="assets/images/rhbLogo.jpg">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-row">
+      <a class="brand" href="index.html" aria-label="Rush Hour Beauty home">
+        <img src="assets/images/rhbLogo.jpg" alt="Rush Hour Beauty logo" class="brand__img">
+        <span class="brand__name">Rush Hour Beauty</span>
+      </a>
+
+      <nav class="nav" aria-label="Primary navigation">
+        <a href="index.html">Home</a>
+        <a href="shop.html">Shop</a>
+        <a href="delivery.html">Quick Commerce</a>
+        <a href="socials.html">Socials</a>
+      </nav>
+
+      <button class="cart-button" id="open-cart" type="button" aria-label="Open cart">
+        <span>Cart</span>
+        <strong id="cart-count">0</strong>
+      </button>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <section class="shop-section" id="shop" aria-labelledby="shop-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Shop</p>
+          <h1 id="shop-title">Beauty essentials</h1>
+          <p>Order directly from our website for convenient courier delivery. A courier fee applies, and delivery times may vary. For beauty delivered in 20 minutes or less, please order through Uber Eats or Mr D.</p>
+        </div>
+
+        <div class="shop-layout reveal">
+          <aside class="aisle-sidebar" aria-label="Catalog filters">
+            <div class="aisle-head">
+              <p class="eyebrow">Filter</p>
+              <h3>Brands</h3>
+            </div>
+            <div class="filter-group">
+              <div class="category-strip" id="brand-filters" aria-label="Product brands">
+                <button class="chip is-active" type="button" data-brand-filter="">All brands</button>
+              </div>
+            </div>
+            <div class="filter-group">
+              <p class="filter-label">Sex</p>
+              <div class="category-strip" id="sex-filters" aria-label="Product sex">
+                <button class="chip is-active" type="button" data-sex-filter="">All</button>
+                <button class="chip" type="button" data-sex-filter="Female">Female</button>
+                <button class="chip" type="button" data-sex-filter="Male">Male</button>
+              </div>
+            </div>
+            <div class="filter-group">
+              <p class="filter-label">Categories</p>
+              <div class="category-strip" id="tag-filters" aria-label="Product categories">
+                <button class="chip is-active" type="button" data-tag-filter="">All categories</button>
+              </div>
+            </div>
+          </aside>
+
+          <div class="catalog-main">
+            <div class="shop-toolbar">
+              <div class="search-wrap">
+                <label for="product-search">Search products</label>
+                <input id="product-search" type="search" placeholder="Search by name, SKU, brand, sex or category">
+              </div>
+            </div>
+
+            <div class="shop-meta">
+              <p id="product-status">Loading products...</p>
+            </div>
+
+            <div class="product-grid" id="product-grid"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="brand">
+        <img src="assets/images/rhbLogo.jpg" alt="Rush Hour Beauty logo" class="brand__img">
+        <span class="brand__name">Rush Hour Beauty</span>
+      </div>
+      <p>High-performing beauty for busy lives. Fair pricing, fast delivery, and elevated service.</p>
+      <small>&copy; <span id="year"></span> Rush Hour Beauty. All rights reserved.</small>
+    </div>
+  </footer>
+
+  <div class="cart-drawer" id="cart-drawer" aria-hidden="true">
+    <div class="cart-backdrop" data-cart-close></div>
+    <aside class="cart-panel" aria-labelledby="cart-title">
+      <div class="cart-head">
+        <div>
+          <p class="eyebrow">Basket</p>
+          <h2 id="cart-title">Your cart</h2>
+        </div>
+        <button class="icon-button" type="button" aria-label="Close cart" data-cart-close>&times;</button>
+      </div>
+      <div class="cart-items" id="cart-items"></div>
+      <div class="cart-summary">
+        <div>
+          <span>Total</span>
+          <strong id="cart-total">R 0.00</strong>
+        </div>
+        <button class="btn btn--disabled" id="cart-checkout" type="button" disabled>Checkout</button>
+      </div>
+    </aside>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Rush Hour Beauty Admin</title>
+  <link rel="icon" type="image/png" href="../assets/images/rhbLogo.jpg">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <main class="admin-shell is-login-mode" id="admin-shell">
+    <section class="auth-panel" aria-labelledby="admin-title">
+      <div class="brand">
+        <img src="../assets/images/rhbLogo.jpg" alt="Rush Hour Beauty logo" class="brand__img">
+        <div>
+          <p class="eyebrow">Private admin</p>
+          <h1 id="admin-title">Rush Hour Beauty</h1>
+        </div>
+      </div>
+
+      <form class="login-form" id="admin-login-form">
+        <label for="admin-email">Email address</label>
+        <input id="admin-email" name="email" type="email" autocomplete="email" required>
+
+        <label for="admin-password">Password</label>
+        <input id="admin-password" name="password" type="password" autocomplete="current-password" required>
+
+        <button class="btn btn--primary" type="submit">Sign in</button>
+        <p class="status" id="admin-login-status" role="status"></p>
+      </form>
+
+    </section>
+
+    <section class="workspace is-hidden" id="admin-workspace" aria-label="Admin workspace" aria-hidden="true">
+      <header class="workspace__header">
+        <div>
+          <p class="eyebrow" id="workspace-eyebrow">Catalog</p>
+          <h2 id="workspace-title">Product Management</h2>
+        </div>
+        <div class="workspace__actions">
+          <span class="pill" id="admin-user-pill">Locked</span>
+          <button class="btn btn--ghost btn--small" id="admin-signout" type="button">Sign out</button>
+        </div>
+      </header>
+
+      <div class="admin-tabs" role="tablist" aria-label="Admin sections">
+        <button class="tab-button is-active" id="products-tab" type="button" role="tab" aria-selected="true" aria-controls="products-panel" data-admin-tab="products">Products</button>
+        <button class="tab-button" id="marketing-tab" type="button" role="tab" aria-selected="false" aria-controls="marketing-panel" data-admin-tab="marketing">Marketing</button>
+        <button class="tab-button" id="imports-tab" type="button" role="tab" aria-selected="false" aria-controls="imports-panel" data-admin-tab="imports">Imports</button>
+      </div>
+
+      <div class="tab-panel" id="products-panel" role="tabpanel" aria-labelledby="products-tab" data-admin-panel="products">
+      <div class="catalog-layout">
+        <div class="sub-tabs" role="tablist" aria-label="Product management sections">
+          <button class="sub-tab-button is-active" id="product-list-subtab" type="button" role="tab" aria-selected="true" aria-controls="product-list-subpanel" data-products-subtab="products">Products</button>
+          <button class="sub-tab-button" id="category-list-subtab" type="button" role="tab" aria-selected="false" aria-controls="category-list-subpanel" data-products-subtab="categories">Tags</button>
+        </div>
+
+        <section class="category-panel is-hidden" id="category-list-subpanel" role="tabpanel" aria-labelledby="category-list-subtab" data-products-subpanel="categories">
+          <div class="product-panel__head">
+            <div>
+              <h3 id="categories-title">Product Tags</h3>
+              <p id="category-count">0 tags</p>
+            </div>
+          </div>
+          <form class="category-form" id="category-form">
+            <input type="hidden" id="category-id" name="id">
+            <label for="category-name">Tag name</label>
+            <div class="inline-form">
+              <input id="category-name" name="name" type="text" autocomplete="off" required>
+              <button class="btn btn--primary btn--small" id="category-submit" type="submit">Save tag</button>
+              <button class="btn btn--ghost btn--small is-hidden" id="category-cancel-edit" type="button">Cancel edit</button>
+            </div>
+            <p class="status" id="category-status" role="status"></p>
+          </form>
+          <div class="category-list" id="category-list">
+            <p class="empty-state">Sign in to manage tags.</p>
+          </div>
+        </section>
+
+        <section class="product-panel" id="product-list-subpanel" role="tabpanel" aria-labelledby="product-list-subtab" data-products-subpanel="products">
+          <div class="product-panel__head">
+            <div>
+              <h3 id="products-title">Products</h3>
+              <p id="product-count">0 products</p>
+            </div>
+            <div class="product-panel__actions">
+              <input class="search-input" id="product-search" type="search" placeholder="Search catalog">
+              <button class="btn btn--primary btn--small" id="open-product-form" type="button">New Product</button>
+            </div>
+          </div>
+
+          <div class="bulk-actions">
+            <label class="check-label">
+              <input id="select-all-products" type="checkbox">
+              <span>Select all</span>
+            </label>
+            <span class="bulk-count" id="selected-product-count">0 selected</span>
+            <button class="btn btn--ghost btn--small" id="export-selected-products" type="button" disabled>Export selected CSV</button>
+            <button class="btn btn--ghost btn--small" id="request-delete-selected-products" type="button" disabled>Delete selected</button>
+            <button class="btn btn--danger btn--small is-hidden" id="confirm-delete-selected-products" type="button">Confirm deletion</button>
+          </div>
+
+          <div class="product-list" id="product-list">
+            <p class="empty-state">Sign in to manage products.</p>
+          </div>
+        </section>
+      </div>
+      </div>
+
+      <section class="tab-panel is-hidden" id="marketing-panel" role="tabpanel" aria-labelledby="marketing-tab" data-admin-panel="marketing">
+        <div class="placeholder-grid">
+          <article class="admin-card social-carousel-admin">
+            <div class="product-panel__head">
+              <div>
+                <h3>Socials Carousel</h3>
+                <p>Upload images to display in the moving image carousel on the Socials page.</p>
+              </div>
+              <span class="pill" id="carousel-count">0 images</span>
+            </div>
+
+            <label class="upload-dropzone compact" id="carousel-image-dropzone" for="carousel-image-input">
+              <input id="carousel-image-input" type="file" accept="image/*" multiple>
+              <span class="upload-dropzone__title">Click to upload carousel images</span>
+              <span class="upload-dropzone__hint">or drag images here</span>
+            </label>
+            <p class="status" id="carousel-status" role="status"></p>
+
+            <div class="carousel-admin-list" id="carousel-image-list">
+              <p class="empty-state">Sign in to manage carousel images.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="tab-panel is-hidden" id="imports-panel" role="tabpanel" aria-labelledby="imports-tab" data-admin-panel="imports">
+        <div class="placeholder-grid">
+          <article class="admin-card">
+            <h3>Bulk Product Import</h3>
+            <p>Upload spreadsheet-ready product data for adding or updating many catalog items at once.</p>
+            <button class="btn btn--primary" id="open-product-import" type="button">Import Product CSV</button>
+          </article>
+          <article class="admin-card">
+            <h3>Stock Updates</h3>
+            <p>Prepare quantity updates from suppliers, store stock takes, or product availability sheets.</p>
+          </article>
+          <article class="admin-card">
+            <h3>Import History</h3>
+            <p>Review past imports, failed rows, and changes made to the live product catalog.</p>
+          </article>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div class="modal is-hidden" id="product-import-modal" role="dialog" aria-modal="true" aria-labelledby="product-import-title">
+    <div class="modal__backdrop" data-import-close></div>
+    <section class="modal__card">
+      <div class="modal__head">
+        <div>
+          <p class="eyebrow">Imports</p>
+          <h2 id="product-import-title">Product CSV Import</h2>
+        </div>
+        <button class="modal__close" type="button" aria-label="Close import popup" data-import-close>&times;</button>
+      </div>
+
+      <div class="template-box">
+        <h3>CSV Upload Template</h3>
+        <p>Use these columns for product uploads: SKU, NAME, IMAGE URL, TAGS, BRAND, SEX, PRICE.</p>
+        <button class="btn btn--primary" id="download-product-template" type="button">Download CSV Template</button>
+
+        <label class="upload-dropzone" id="product-csv-dropzone" for="product-csv-input">
+          <input id="product-csv-input" type="file" accept=".csv,text/csv">
+          <span class="upload-dropzone__title">Click to upload CSV file</span>
+          <span class="upload-dropzone__hint">or drag file here to upload</span>
+        </label>
+        <p class="status" id="product-csv-status" role="status"></p>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal is-hidden" id="product-form-modal" role="dialog" aria-modal="true" aria-labelledby="product-form-title">
+    <div class="modal__backdrop" data-product-form-close></div>
+    <section class="modal__card">
+      <div class="modal__head">
+        <div>
+          <p class="eyebrow">Products</p>
+          <h2 id="product-form-title">New Product</h2>
+        </div>
+        <button class="modal__close" type="button" aria-label="Close product popup" data-product-form-close>&times;</button>
+      </div>
+
+      <form class="product-form" id="product-form">
+        <input type="hidden" id="product-id" name="id">
+        <input type="hidden" id="product-image-url" name="imageUrl">
+
+        <label for="product-sku">SKU</label>
+        <input id="product-sku" name="sku" type="text" autocomplete="off" required>
+
+        <label for="product-name">Name</label>
+        <input id="product-name" name="name" type="text" autocomplete="off" required>
+
+        <label for="product-tags">Tags</label>
+        <div class="inline-form">
+          <input id="product-tags" name="tags" type="text" placeholder="Pharmacy, Female Health, Face Care" autocomplete="off" required>
+          <button class="btn btn--ghost btn--small" id="quick-add-category" type="button">Add tag</button>
+        </div>
+
+        <label for="product-brand">Brand</label>
+        <input id="product-brand" name="brand" type="text" autocomplete="off" placeholder="Optional">
+
+        <label for="product-sex">Sex</label>
+        <select id="product-sex" name="sex">
+          <option value="">Optional</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+
+        <label for="product-image-file">Image upload</label>
+        <label class="upload-dropzone compact" id="product-image-dropzone" for="product-image-file">
+          <input id="product-image-file" type="file" accept="image/*">
+          <span class="upload-dropzone__title">Click to upload image</span>
+          <span class="upload-dropzone__hint">or drag image here</span>
+        </label>
+        <div class="image-preview is-hidden" id="product-image-preview"></div>
+
+        <label for="product-price">Price</label>
+        <input id="product-price" name="price" type="number" min="0" step="0.01" inputmode="decimal" required>
+
+        <label class="toggle-row" for="product-active">
+          <span>Status</span>
+          <span class="toggle-control">
+            <input id="product-active" name="isActive" type="checkbox" checked>
+            <span class="toggle-track" aria-hidden="true"></span>
+            <span id="product-active-label">Active</span>
+          </span>
+        </label>
+
+        <button class="btn btn--primary" id="product-submit" type="submit">Save product</button>
+        <p class="status" id="product-form-status" role="status"></p>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal is-hidden" id="quick-category-modal" role="dialog" aria-modal="true" aria-labelledby="quick-category-title">
+    <div class="modal__backdrop" data-quick-category-close></div>
+    <section class="modal__card">
+      <div class="modal__head">
+        <div>
+          <p class="eyebrow">Tags</p>
+          <h2 id="quick-category-title">Add Tag</h2>
+        </div>
+        <button class="modal__close" type="button" aria-label="Close tag popup" data-quick-category-close>&times;</button>
+      </div>
+
+      <form class="product-form" id="quick-category-form">
+        <label for="quick-category-name">Tag name</label>
+        <input id="quick-category-name" name="name" type="text" autocomplete="off" required>
+        <button class="btn btn--primary" type="submit">Create tag</button>
+        <p class="status" id="quick-category-status" role="status"></p>
+      </form>
+    </section>
+  </div>
+
+  <footer class="admin-footer">
+    <span>&copy; <span id="admin-year"></span> Rush Hour Beauty</span>
+  </footer>
+
+  <script type="module" src="admin.js"></script>
+</body>
+</html>

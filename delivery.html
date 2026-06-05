@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rush Hour Beauty Delivery - Uber Eats and Mr D</title>
+  <meta name="description" content="Order Rush Hour Beauty through Uber Eats or Mr D for beauty delivered in 20 minutes or less in supported areas.">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://rushhourbeauty.co.za/delivery.html">
+  <link rel="icon" type="image/png" href="assets/images/rhbLogo.jpg">
+  <link rel="preload" as="image" href="assets/images/ordernowhero.png">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-row">
+      <a class="brand" href="index.html" aria-label="Rush Hour Beauty home">
+        <img src="assets/images/rhbLogo.jpg" alt="Rush Hour Beauty logo" class="brand__img">
+        <span class="brand__name">Rush Hour Beauty</span>
+      </a>
+
+      <nav class="nav" aria-label="Primary navigation">
+        <a href="index.html">Home</a>
+        <a href="shop.html">Shop</a>
+        <a href="delivery.html">Quick Commerce</a>
+        <a href="socials.html">Socials</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <section class="delivery-band" id="delivery" aria-labelledby="delivery-title">
+      <div class="container delivery-grid quick-commerce-layout">
+        <div class="section-head reveal">
+          <p class="eyebrow">Quick Commerce</p>
+          <h1 id="delivery-title">Order Now</h1>
+          <p>Available on Uber Eats and Mr D.</p>
+        </div>
+        <div class="delivery-actions reveal">
+          <div class="delivery-logo-row">
+            <div class="delivery-card">
+              <img src="assets/images/ubereats-logo.png" alt="Uber Eats">
+            </div>
+            <div class="delivery-card">
+              <img src="assets/images/mrdfood-logo.png" alt="Mr D">
+            </div>
+          </div>
+          <button class="btn btn--primary" id="find-store" type="button">Find nearest store</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="brand">
+        <img src="assets/images/rhbLogo.jpg" alt="Rush Hour Beauty logo" class="brand__img">
+        <span class="brand__name">Rush Hour Beauty</span>
+      </div>
+      <p>High-performing beauty for busy lives. Fair pricing, fast delivery, and elevated service.</p>
+      <small>&copy; <span id="year"></span> Rush Hour Beauty. All rights reserved.</small>
+    </div>
+  </footer>
+
+  <div class="platform-modal" id="platform-modal" aria-hidden="true" role="dialog" aria-labelledby="platform-title">
+    <div class="modal-backdrop" data-platform-close></div>
+    <div class="platform-card">
+      <button class="icon-button modal-close" aria-label="Close" data-platform-close type="button">&times;</button>
+      <p class="eyebrow">Order</p>
+      <h2 id="platform-title">Choose a platform</h2>
+      <p id="platform-status">We'll open the closest Rush Hour Beauty store on your selected platform.</p>
+      <div class="platform-actions">
+        <button class="btn btn--primary" data-platform="ubereats" type="button">Uber Eats</button>
+        <button class="btn btn--primary" data-platform="mrd" type="button">Mr D</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
