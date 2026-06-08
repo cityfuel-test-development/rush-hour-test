@@ -6,6 +6,15 @@ import {
   query,
   where,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import {
+  createUserWithEmailAndPassword,
+  getAuth,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD5tgCJHw05YCQKjRKlIeJeknzygmlchOM",
@@ -18,6 +27,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 const STORES = [
   {
@@ -155,6 +165,7 @@ const state = {
   activeTag: "",
   search: "",
   cart: new Map(),
+  customer: null,
 };
 
 const els = {
@@ -173,6 +184,20 @@ const els = {
   platformStatus: document.getElementById("platform-status"),
   socialCarouselTrack: document.getElementById("social-carousel-track"),
   socialCarouselStatus: document.getElementById("social-carousel-status"),
+  accountNavLink: document.getElementById("account-nav-link"),
+  accountAuthPanel: document.getElementById("account-auth-panel"),
+  accountProfilePanel: document.getElementById("account-profile-panel"),
+  customerLoginForm: document.getElementById("customer-login-form"),
+  customerRegisterForm: document.getElementById("customer-register-form"),
+  customerResetForm: document.getElementById("customer-reset-form"),
+  customerSignout: document.getElementById("customer-signout"),
+  customerLoginStatus: document.getElementById("customer-login-status"),
+  customerRegisterStatus: document.getElementById("customer-register-status"),
+  customerResetStatus: document.getElementById("customer-reset-status"),
+  customerName: document.getElementById("customer-name"),
+  customerEmail: document.getElementById("customer-email"),
+  customerEmailDetail: document.getElementById("customer-email-detail"),
+  customerSince: document.getElementById("customer-since"),
 };
 
 if (els.year) els.year.textContent = new Date().getFullYear();
@@ -181,6 +206,7 @@ setupReveal();
 if (els.productGrid) watchProducts();
 if (els.socialCarouselTrack) watchSocialCarousel();
 bindEvents();
+watchCustomerAuth();
 
 function setupReveal() {
   const revealEls = document.querySelectorAll(".reveal");
@@ -246,6 +272,10 @@ function bindEvents() {
   document.getElementById("open-cart")?.addEventListener("click", () => openCart());
   document.getElementById("find-store")?.addEventListener("click", () => openPlatformModal());
   document.getElementById("hero-find-store")?.addEventListener("click", () => openPlatformModal());
+  els.customerLoginForm?.addEventListener("submit", handleCustomerLogin);
+  els.customerRegisterForm?.addEventListener("submit", handleCustomerRegister);
+  els.customerResetForm?.addEventListener("submit", handleCustomerPasswordReset);
+  els.customerSignout?.addEventListener("click", handleCustomerSignout);
 
   document.addEventListener("click", (event) => {
     if (event.target.closest("[data-cart-close]")) closeCart();
@@ -268,6 +298,100 @@ function bindEvents() {
       closePlatformModal();
     }
   });
+}
+
+function watchCustomerAuth() {
+  onAuthStateChanged(auth, (user) => {
+    state.customer = user;
+    renderCustomerAccount();
+  });
+}
+
+async function handleCustomerLogin(event) {
+  event.preventDefault();
+  setStatus(els.customerLoginStatus, "Signing you in...");
+
+  const formData = new FormData(els.customerLoginForm);
+  const email = clean(formData.get("email"));
+  const password = String(formData.get("password") || "");
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    els.customerLoginForm.reset();
+    setStatus(els.customerLoginStatus, "Signed in.", "success");
+  } catch (error) {
+    setStatus(els.customerLoginStatus, friendlyCustomerAuthError(error), "error");
+  }
+}
+
+async function handleCustomerRegister(event) {
+  event.preventDefault();
+  setStatus(els.customerRegisterStatus, "Creating your account...");
+
+  const formData = new FormData(els.customerRegisterForm);
+  const name = clean(formData.get("name"));
+  const email = clean(formData.get("email"));
+  const password = String(formData.get("password") || "");
+
+  try {
+    const credentials = await createUserWithEmailAndPassword(auth, email, password);
+    if (name) {
+      await updateProfile(credentials.user, { displayName: name });
+    }
+    els.customerRegisterForm.reset();
+    setStatus(els.customerRegisterStatus, "Account created. Welcome to Rush Hour Beauty.", "success");
+    renderCustomerAccount(credentials.user);
+  } catch (error) {
+    setStatus(els.customerRegisterStatus, friendlyCustomerAuthError(error), "error");
+  }
+}
+
+async function handleCustomerPasswordReset(event) {
+  event.preventDefault();
+  setStatus(els.customerResetStatus, "Sending reset email...");
+
+  const formData = new FormData(els.customerResetForm);
+  const email = clean(formData.get("email"));
+
+  try {
+    await sendPasswordResetEmail(auth, email);
+    els.customerResetForm.reset();
+    setStatus(els.customerResetStatus, "Password reset email sent.", "success");
+  } catch (error) {
+    setStatus(els.customerResetStatus, friendlyCustomerAuthError(error), "error");
+  }
+}
+
+async function handleCustomerSignout() {
+  await signOut(auth);
+  setStatus(els.customerLoginStatus, "Signed out.");
+}
+
+function renderCustomerAccount(user = state.customer) {
+  if (els.accountNavLink) {
+    els.accountNavLink.textContent = user ? "Profile" : "Account";
+  }
+
+  if (!els.accountAuthPanel || !els.accountProfilePanel) return;
+
+  if (!user) {
+    els.accountAuthPanel.classList.remove("is-hidden");
+    els.accountProfilePanel.classList.add("is-hidden");
+    return;
+  }
+
+  els.accountAuthPanel.classList.add("is-hidden");
+  els.accountProfilePanel.classList.remove("is-hidden");
+
+  if (els.customerName) els.customerName.textContent = user.displayName || "Rush Hour Beauty customer";
+  if (els.customerEmail) els.customerEmail.textContent = user.email || "";
+  if (els.customerEmailDetail) els.customerEmailDetail.textContent = user.email || "Managed securely by Firebase Auth";
+  if (els.customerSince) {
+    const createdAt = user.metadata?.creationTime ? new Date(user.metadata.creationTime) : null;
+    els.customerSince.textContent = createdAt && !Number.isNaN(createdAt.getTime())
+      ? createdAt.toLocaleDateString("en-ZA", { year: "numeric", month: "long", day: "numeric" })
+      : "Recently";
+  }
 }
 
 function watchProducts() {
@@ -561,6 +685,32 @@ function distanceKm(a, b) {
 
 function setPlatformStatus(message) {
   if (els.platformStatus) els.platformStatus.textContent = message;
+}
+
+function setStatus(element, message, tone = "") {
+  if (!element) return;
+  element.textContent = message || "";
+  element.classList.remove("is-error", "is-success");
+  if (tone) element.classList.add(`is-${tone}`);
+}
+
+function friendlyCustomerAuthError(error) {
+  switch (error?.code) {
+    case "auth/email-already-in-use":
+      return "An account already exists for that email address.";
+    case "auth/invalid-email":
+      return "Please enter a valid email address.";
+    case "auth/invalid-credential":
+    case "auth/user-not-found":
+    case "auth/wrong-password":
+      return "Those login details do not match an account.";
+    case "auth/weak-password":
+      return "Please use a password with at least 6 characters.";
+    case "auth/too-many-requests":
+      return "Too many attempts. Please wait a moment and try again.";
+    default:
+      return error?.message || "Something went wrong. Please try again.";
+  }
 }
 
 function parseTags(value) {

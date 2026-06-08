@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rush Hour Beauty Account - Sign In or Create Profile</title>
+  <meta name="description" content="Create or manage your Rush Hour Beauty account for website orders and order history.">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://rushhourbeauty.co.za/account.html">
+  <link rel="icon" type="image/png" href="assets/images/rhbLogo.jpg">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-row">
+      <a class="brand" href="index.html" aria-label="Rush Hour Beauty home">
+        <img src="assets/images/rhbLogo.jpg" alt="Rush Hour Beauty logo" class="brand__img">
+        <span class="brand__name">Rush Hour Beauty</span>
+      </a>
+
+      <nav class="nav" aria-label="Primary navigation">
+        <a href="index.html">Home</a>
+        <a href="shop.html">Shop</a>
+        <a href="delivery.html">Quick Commerce</a>
+        <a href="socials.html">Socials</a>
+        <a href="account.html" id="account-nav-link">Account</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <section class="account-section" aria-labelledby="account-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Account</p>
+          <h1 id="account-title">Your beauty profile</h1>
+          <p>Create an account to make future website orders easier and keep your order history in one place.</p>
+        </div>
+
+        <div class="account-grid reveal" id="account-auth-panel">
+          <article class="account-card">
+            <h2>Sign in</h2>
+            <p>Access your profile and website order history.</p>
+            <form class="account-form" id="customer-login-form">
+              <label for="customer-login-email">Email address</label>
+              <input id="customer-login-email" name="email" type="email" autocomplete="email" required>
+
+              <label for="customer-login-password">Password</label>
+              <input id="customer-login-password" name="password" type="password" autocomplete="current-password" required>
+
+              <button class="btn btn--primary" type="submit">Sign in</button>
+              <p class="status" id="customer-login-status" role="status"></p>
+            </form>
+          </article>
+
+          <article class="account-card">
+            <h2>Create account</h2>
+            <p>Set up your Rush Hour Beauty profile for website checkout.</p>
+            <form class="account-form" id="customer-register-form">
+              <label for="customer-register-name">Full name</label>
+              <input id="customer-register-name" name="name" type="text" autocomplete="name" required>
+
+              <label for="customer-register-email">Email address</label>
+              <input id="customer-register-email" name="email" type="email" autocomplete="email" required>
+
+              <label for="customer-register-password">Password</label>
+              <input id="customer-register-password" name="password" type="password" autocomplete="new-password" minlength="6" required>
+
+              <button class="btn btn--primary" type="submit">Create account</button>
+              <p class="status" id="customer-register-status" role="status"></p>
+            </form>
+          </article>
+
+          <article class="account-card account-card--wide">
+            <h2>Forgot password?</h2>
+            <p>Enter your email address and we will send a password reset link.</p>
+            <form class="account-form account-form--inline" id="customer-reset-form">
+              <label class="sr-only" for="customer-reset-email">Email address</label>
+              <input id="customer-reset-email" name="email" type="email" autocomplete="email" placeholder="Email address" required>
+              <button class="btn btn--ghost" type="submit">Send reset link</button>
+            </form>
+            <p class="status" id="customer-reset-status" role="status"></p>
+          </article>
+        </div>
+
+        <div class="profile-panel reveal is-hidden" id="account-profile-panel">
+          <div class="profile-card">
+            <div>
+              <p class="eyebrow">Profile</p>
+              <h2 id="customer-name">Rush Hour Beauty customer</h2>
+              <p id="customer-email"></p>
+            </div>
+            <button class="btn btn--ghost" id="customer-signout" type="button">Sign out</button>
+          </div>
+
+          <div class="profile-grid">
+            <article class="account-card">
+              <h3>Account details</h3>
+              <dl class="detail-list">
+                <div>
+                  <dt>Member since</dt>
+                  <dd id="customer-since">Recently</dd>
+                </div>
+                <div>
+                  <dt>Email</dt>
+                  <dd id="customer-email-detail">Managed securely by Firebase Auth</dd>
+                </div>
+              </dl>
+            </article>
+
+            <article class="account-card">
+              <h3>Website orders</h3>
+              <p>Your website orders will appear here once checkout is enabled.</p>
+              <div class="empty-card">No website orders yet.</div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="brand">
+        <img src="assets/images/rhbLogo.jpg" alt="Rush Hour Beauty logo" class="brand__img">
+        <span class="brand__name">Rush Hour Beauty</span>
+      </div>
+      <p>High-performing beauty for busy lives. Fair pricing, fast delivery, and elevated service.</p>
+      <small>&copy; <span id="year"></span> Rush Hour Beauty. All rights reserved.</small>
+    </div>
+  </footer>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
