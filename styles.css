@@ -311,7 +311,18 @@ section{padding:82px 0}
 .account-card--wide{grid-column:1 / -1}
 .account-card h2,
 .account-card h3{font-size:1.35rem}
+.account-card h4{
+  margin:0;
+  color:var(--text);
+  font-size:1rem;
+}
 .account-card p{margin:0;color:var(--muted)}
+.card-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
 .account-form{
   display:grid;
   gap:10px;
@@ -344,6 +355,73 @@ section{padding:82px 0}
 }
 .status.is-error{color:#9f2f22}
 .status.is-success{color:#2f6f45}
+.security-card{gap:18px}
+.security-badge{
+  display:inline-flex;
+  align-items:center;
+  min-height:28px;
+  padding:0 10px;
+  border-radius:999px;
+  background:#fff4ee;
+  border:1px solid var(--line);
+  color:#9f512f;
+  font-size:.72rem;
+  font-weight:900;
+  white-space:nowrap;
+}
+.security-badge.is-success{
+  background:#edf8f0;
+  border-color:rgba(47,111,69,.22);
+  color:#2f6f45;
+}
+.security-badge.is-warning{
+  background:#fff4ee;
+  color:#9f512f;
+}
+.security-block{
+  display:grid;
+  gap:10px;
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:#fffaf7;
+}
+.security-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.mfa-qr{
+  min-height:180px;
+  display:grid;
+  place-items:center;
+  border:1px dashed var(--line);
+  border-radius:var(--radius);
+  background:#fff;
+}
+.mfa-qr img{
+  width:min(220px,80vw);
+  height:auto;
+}
+.manual-key{
+  display:grid;
+  gap:6px;
+  padding:12px;
+  border-radius:var(--radius);
+  background:#fff;
+  border:1px solid var(--line);
+}
+.manual-key span{
+  color:var(--accent-2);
+  font-size:.76rem;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.manual-key strong{
+  font-family:Consolas,Monaco,monospace;
+  overflow-wrap:anywhere;
+}
 .profile-panel{
   display:grid;
   gap:18px;
@@ -605,6 +683,8 @@ section{padding:82px 0}
   .page-main{padding-top:104px}
   .account-form--inline,
   .profile-card{grid-template-columns:1fr}
+  .card-head{display:grid}
+  .security-actions{display:grid}
 }
 
 @media (max-width:460px){

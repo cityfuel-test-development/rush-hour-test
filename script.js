@@ -8,11 +8,18 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 import {
   createUserWithEmailAndPassword,
+  EmailAuthProvider,
   getAuth,
+  getMultiFactorResolver,
+  multiFactor,
   onAuthStateChanged,
+  reauthenticateWithCredential,
+  reload,
+  sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
+  TotpMultiFactorGenerator,
   updateProfile,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
@@ -166,6 +173,8 @@ const state = {
   search: "",
   cart: new Map(),
   customer: null,
+  pendingMfaResolver: null,
+  pendingTotpSecret: null,
 };
 
 const els = {
@@ -190,7 +199,21 @@ const els = {
   customerLoginForm: document.getElementById("customer-login-form"),
   customerRegisterForm: document.getElementById("customer-register-form"),
   customerResetForm: document.getElementById("customer-reset-form"),
+  customerMfaSigninPanel: document.getElementById("customer-mfa-signin-panel"),
+  customerMfaSigninForm: document.getElementById("customer-mfa-signin-form"),
+  customerMfaSigninStatus: document.getElementById("customer-mfa-signin-status"),
   customerSignout: document.getElementById("customer-signout"),
+  customerSendVerification: document.getElementById("customer-send-verification"),
+  customerRefreshVerification: document.getElementById("customer-refresh-verification"),
+  customerVerificationStatus: document.getElementById("customer-verification-status"),
+  customerMfaStatusBadge: document.getElementById("customer-mfa-status-badge"),
+  customerMfaSetupForm: document.getElementById("customer-mfa-setup-form"),
+  customerMfaVerifyForm: document.getElementById("customer-mfa-verify-form"),
+  customerMfaPassword: document.getElementById("customer-mfa-password"),
+  customerMfaQr: document.getElementById("customer-mfa-qr"),
+  customerMfaManualKey: document.getElementById("customer-mfa-manual-key"),
+  customerMfaSetupStatus: document.getElementById("customer-mfa-setup-status"),
+  customerMfaVerifyStatus: document.getElementById("customer-mfa-verify-status"),
   customerLoginStatus: document.getElementById("customer-login-status"),
   customerRegisterStatus: document.getElementById("customer-register-status"),
   customerResetStatus: document.getElementById("customer-reset-status"),
@@ -275,6 +298,11 @@ function bindEvents() {
   els.customerLoginForm?.addEventListener("submit", handleCustomerLogin);
   els.customerRegisterForm?.addEventListener("submit", handleCustomerRegister);
   els.customerResetForm?.addEventListener("submit", handleCustomerPasswordReset);
+  els.customerMfaSigninForm?.addEventListener("submit", handleCustomerMfaSignin);
+  els.customerSendVerification?.addEventListener("click", handleSendCustomerVerification);
+  els.customerRefreshVerification?.addEventListener("click", handleRefreshCustomerVerification);
+  els.customerMfaSetupForm?.addEventListener("submit", handleStartCustomerMfaSetup);
+  els.customerMfaVerifyForm?.addEventListener("submit", handleVerifyCustomerMfaSetup);
   els.customerSignout?.addEventListener("click", handleCustomerSignout);
 
   document.addEventListener("click", (event) => {
@@ -320,6 +348,12 @@ async function handleCustomerLogin(event) {
     els.customerLoginForm.reset();
     setStatus(els.customerLoginStatus, "Signed in.", "success");
   } catch (error) {
+    if (error?.code === "auth/multi-factor-auth-required") {
+      state.pendingMfaResolver = getMultiFactorResolver(auth, error);
+      showCustomerMfaSignin();
+      setStatus(els.customerLoginStatus, "");
+      return;
+    }
     setStatus(els.customerLoginStatus, friendlyCustomerAuthError(error), "error");
   }
 }
@@ -338,8 +372,9 @@ async function handleCustomerRegister(event) {
     if (name) {
       await updateProfile(credentials.user, { displayName: name });
     }
+    await sendEmailVerification(credentials.user);
     els.customerRegisterForm.reset();
-    setStatus(els.customerRegisterStatus, "Account created. Welcome to Rush Hour Beauty.", "success");
+    setStatus(els.customerRegisterStatus, "Account created. Please verify your email before ordering.", "success");
     renderCustomerAccount(credentials.user);
   } catch (error) {
     setStatus(els.customerRegisterStatus, friendlyCustomerAuthError(error), "error");
@@ -364,6 +399,8 @@ async function handleCustomerPasswordReset(event) {
 
 async function handleCustomerSignout() {
   await signOut(auth);
+  state.pendingMfaResolver = null;
+  state.pendingTotpSecret = null;
   setStatus(els.customerLoginStatus, "Signed out.");
 }
 
@@ -377,20 +414,167 @@ function renderCustomerAccount(user = state.customer) {
   if (!user) {
     els.accountAuthPanel.classList.remove("is-hidden");
     els.accountProfilePanel.classList.add("is-hidden");
+    els.customerMfaSigninPanel?.classList.add("is-hidden");
     return;
   }
 
   els.accountAuthPanel.classList.add("is-hidden");
   els.accountProfilePanel.classList.remove("is-hidden");
+  els.customerMfaSigninPanel?.classList.add("is-hidden");
 
   if (els.customerName) els.customerName.textContent = user.displayName || "Rush Hour Beauty customer";
   if (els.customerEmail) els.customerEmail.textContent = user.email || "";
   if (els.customerEmailDetail) els.customerEmailDetail.textContent = user.email || "Managed securely by Firebase Auth";
+  renderCustomerSecurity(user);
   if (els.customerSince) {
     const createdAt = user.metadata?.creationTime ? new Date(user.metadata.creationTime) : null;
     els.customerSince.textContent = createdAt && !Number.isNaN(createdAt.getTime())
       ? createdAt.toLocaleDateString("en-ZA", { year: "numeric", month: "long", day: "numeric" })
       : "Recently";
+  }
+}
+
+function renderCustomerSecurity(user) {
+  if (els.customerVerificationStatus) {
+    setStatus(
+      els.customerVerificationStatus,
+      user.emailVerified
+        ? "Email verified. This account can be used for protected website orders."
+        : "Email verification is required before website orders are enabled.",
+      user.emailVerified ? "success" : "error"
+    );
+  }
+
+  if (els.customerSendVerification) els.customerSendVerification.disabled = user.emailVerified;
+
+  const enrolledFactors = multiFactor(user).enrolledFactors || [];
+  const hasTotp = enrolledFactors.some((factor) => factor.factorId === "totp");
+  if (els.customerMfaStatusBadge) {
+    els.customerMfaStatusBadge.textContent = hasTotp ? "Authenticator app enabled" : "Authenticator app required";
+    els.customerMfaStatusBadge.classList.toggle("is-success", hasTotp);
+    els.customerMfaStatusBadge.classList.toggle("is-warning", !hasTotp);
+  }
+
+  if (els.customerMfaSetupForm) {
+    els.customerMfaSetupForm.classList.toggle("is-hidden", hasTotp);
+  }
+  if (els.customerMfaVerifyForm) {
+    els.customerMfaVerifyForm.classList.toggle("is-hidden", !state.pendingTotpSecret || hasTotp);
+  }
+}
+
+async function handleSendCustomerVerification() {
+  if (!auth.currentUser) return;
+  setStatus(els.customerVerificationStatus, "Sending verification email...");
+
+  try {
+    await sendEmailVerification(auth.currentUser);
+    setStatus(els.customerVerificationStatus, "Verification email sent. Check your inbox.", "success");
+  } catch (error) {
+    setStatus(els.customerVerificationStatus, friendlyCustomerAuthError(error), "error");
+  }
+}
+
+async function handleRefreshCustomerVerification() {
+  if (!auth.currentUser) return;
+  setStatus(els.customerVerificationStatus, "Checking verification status...");
+
+  try {
+    await reload(auth.currentUser);
+    renderCustomerAccount(auth.currentUser);
+  } catch (error) {
+    setStatus(els.customerVerificationStatus, friendlyCustomerAuthError(error), "error");
+  }
+}
+
+async function handleStartCustomerMfaSetup(event) {
+  event.preventDefault();
+  if (!auth.currentUser) return;
+  setStatus(els.customerMfaSetupStatus, "Starting authenticator app setup...");
+
+  const password = String(new FormData(els.customerMfaSetupForm).get("password") || "");
+  if (!password) {
+    setStatus(els.customerMfaSetupStatus, "Please confirm your password first.", "error");
+    return;
+  }
+
+  try {
+    const credential = EmailAuthProvider.credential(auth.currentUser.email, password);
+    await reauthenticateWithCredential(auth.currentUser, credential);
+    const session = await multiFactor(auth.currentUser).getSession();
+    const secret = await TotpMultiFactorGenerator.generateSecret(session);
+    state.pendingTotpSecret = secret;
+
+    const accountName = auth.currentUser.email || "Rush Hour Beauty";
+    const authenticatorUri = secret.generateQrCodeUrl(accountName, "Rush Hour Beauty");
+    if (els.customerMfaQr) {
+      els.customerMfaQr.innerHTML = `
+        <div>
+          <strong>Manual setup recommended</strong>
+          <p>For privacy, this page does not send your MFA secret to a third-party QR service.</p>
+        </div>
+      `;
+      els.customerMfaQr.setAttribute("data-authenticator-uri", authenticatorUri);
+    }
+    if (els.customerMfaManualKey) {
+      els.customerMfaManualKey.textContent = secret.secretKey || "";
+    }
+
+    els.customerMfaSetupForm.reset();
+    els.customerMfaVerifyForm?.classList.remove("is-hidden");
+    setStatus(els.customerMfaSetupStatus, "Use the manual setup key in your authenticator app, then enter the 6-digit code.", "success");
+  } catch (error) {
+    setStatus(els.customerMfaSetupStatus, friendlyCustomerAuthError(error), "error");
+  }
+}
+
+async function handleVerifyCustomerMfaSetup(event) {
+  event.preventDefault();
+  if (!auth.currentUser || !state.pendingTotpSecret) return;
+  setStatus(els.customerMfaVerifyStatus, "Verifying authenticator code...");
+
+  const formData = new FormData(els.customerMfaVerifyForm);
+  const code = clean(formData.get("code")).replace(/\s+/g, "");
+  const deviceName = clean(formData.get("deviceName")) || "Authenticator app";
+
+  try {
+    const assertion = TotpMultiFactorGenerator.assertionForEnrollment(state.pendingTotpSecret, code);
+    await multiFactor(auth.currentUser).enroll(assertion, deviceName);
+    state.pendingTotpSecret = null;
+    els.customerMfaQr.innerHTML = "";
+    els.customerMfaManualKey.textContent = "";
+    els.customerMfaVerifyForm.reset();
+    await reload(auth.currentUser);
+    renderCustomerAccount(auth.currentUser);
+    setStatus(els.customerMfaVerifyStatus, "Authenticator app enabled.", "success");
+  } catch (error) {
+    setStatus(els.customerMfaVerifyStatus, friendlyCustomerAuthError(error), "error");
+  }
+}
+
+function showCustomerMfaSignin() {
+  els.customerMfaSigninPanel?.classList.remove("is-hidden");
+  setStatus(els.customerMfaSigninStatus, "Enter the 6-digit code from your authenticator app.");
+}
+
+async function handleCustomerMfaSignin(event) {
+  event.preventDefault();
+  if (!state.pendingMfaResolver) return;
+  setStatus(els.customerMfaSigninStatus, "Checking authenticator code...");
+
+  const code = clean(new FormData(els.customerMfaSigninForm).get("code")).replace(/\s+/g, "");
+  const totpHint = state.pendingMfaResolver.hints.find((hint) => hint.factorId === "totp")
+    || state.pendingMfaResolver.hints[0];
+
+  try {
+    const assertion = TotpMultiFactorGenerator.assertionForSignIn(totpHint.uid, code);
+    await state.pendingMfaResolver.resolveSignIn(assertion);
+    state.pendingMfaResolver = null;
+    els.customerMfaSigninForm.reset();
+    els.customerMfaSigninPanel?.classList.add("is-hidden");
+    setStatus(els.customerMfaSigninStatus, "Signed in securely.", "success");
+  } catch (error) {
+    setStatus(els.customerMfaSigninStatus, friendlyCustomerAuthError(error), "error");
   }
 }
 
@@ -708,6 +892,14 @@ function friendlyCustomerAuthError(error) {
       return "Please use a password with at least 6 characters.";
     case "auth/too-many-requests":
       return "Too many attempts. Please wait a moment and try again.";
+    case "auth/missing-multi-factor-session":
+    case "auth/unsupported-first-factor":
+    case "auth/operation-not-allowed":
+      return "Authenticator app MFA needs Identity Platform MFA enabled in Firebase Console before it can be used.";
+    case "auth/invalid-verification-code":
+      return "That authenticator code was not accepted. Please try the latest code from your app.";
+    case "auth/requires-recent-login":
+      return "Please sign out, sign in again, and retry this security action.";
     default:
       return error?.message || "Something went wrong. Please try again.";
   }
