@@ -35,6 +35,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const CART_STORAGE_KEY = "rushBeautyCart";
 
 const STORES = [
   {
@@ -189,6 +190,8 @@ const els = {
   cartDrawer: document.getElementById("cart-drawer"),
   cartItems: document.getElementById("cart-items"),
   cartTotal: document.getElementById("cart-total"),
+  cartCheckout: document.getElementById("cart-checkout"),
+  cartCheckoutStatus: document.getElementById("cart-checkout-status"),
   platformModal: document.getElementById("platform-modal"),
   platformStatus: document.getElementById("platform-status"),
   socialCarouselTrack: document.getElementById("social-carousel-track"),
@@ -221,15 +224,26 @@ const els = {
   customerEmail: document.getElementById("customer-email"),
   customerEmailDetail: document.getElementById("customer-email-detail"),
   customerSince: document.getElementById("customer-since"),
+  checkoutAuthRequired: document.getElementById("checkout-auth-required"),
+  checkoutSecurityRequired: document.getElementById("checkout-security-required"),
+  checkoutSecurityStatus: document.getElementById("checkout-security-status"),
+  checkoutWorkspace: document.getElementById("checkout-workspace"),
+  checkoutItems: document.getElementById("checkout-items"),
+  checkoutItemCount: document.getElementById("checkout-item-count"),
+  checkoutSubtotal: document.getElementById("checkout-subtotal"),
+  checkoutName: document.getElementById("checkout-name"),
 };
 
 if (els.year) els.year.textContent = new Date().getFullYear();
 
 setupReveal();
+loadCart();
 if (els.productGrid) watchProducts();
 if (els.socialCarouselTrack) watchSocialCarousel();
 bindEvents();
 watchCustomerAuth();
+renderCart();
+renderCheckout();
 
 function setupReveal() {
   const revealEls = document.querySelectorAll(".reveal");
@@ -293,6 +307,7 @@ function bindEvents() {
   });
 
   document.getElementById("open-cart")?.addEventListener("click", () => openCart());
+  els.cartCheckout?.addEventListener("click", handleCheckoutClick);
   document.getElementById("find-store")?.addEventListener("click", () => openPlatformModal());
   document.getElementById("hero-find-store")?.addEventListener("click", () => openPlatformModal());
   els.customerLoginForm?.addEventListener("submit", handleCustomerLogin);
@@ -347,6 +362,7 @@ async function handleCustomerLogin(event) {
     await signInWithEmailAndPassword(auth, email, password);
     els.customerLoginForm.reset();
     setStatus(els.customerLoginStatus, "Signed in.", "success");
+    redirectAfterAccountAuth();
   } catch (error) {
     if (error?.code === "auth/multi-factor-auth-required") {
       state.pendingMfaResolver = getMultiFactorResolver(auth, error);
@@ -376,6 +392,7 @@ async function handleCustomerRegister(event) {
     els.customerRegisterForm.reset();
     setStatus(els.customerRegisterStatus, "Account created. Please verify your email before ordering.", "success");
     renderCustomerAccount(credentials.user);
+    redirectAfterAccountAuth();
   } catch (error) {
     setStatus(els.customerRegisterStatus, friendlyCustomerAuthError(error), "error");
   }
@@ -409,6 +426,8 @@ function renderCustomerAccount(user = state.customer) {
     els.accountNavLink.textContent = user ? "Profile" : "Account";
   }
 
+  renderCheckout();
+
   if (!els.accountAuthPanel || !els.accountProfilePanel) return;
 
   if (!user) {
@@ -432,6 +451,19 @@ function renderCustomerAccount(user = state.customer) {
       ? createdAt.toLocaleDateString("en-ZA", { year: "numeric", month: "long", day: "numeric" })
       : "Recently";
   }
+}
+
+function redirectAfterAccountAuth() {
+  const next = safeNextUrl();
+  if (next) {
+    window.location.href = next;
+  }
+}
+
+function safeNextUrl() {
+  const next = new URLSearchParams(window.location.search).get("next");
+  if (!next || /^(https?:)?\/\//i.test(next) || next.includes("..")) return "";
+  return next;
 }
 
 function renderCustomerSecurity(user) {
@@ -754,6 +786,7 @@ function addToCart(productId) {
   const current = state.cart.get(productId) || { product, quantity: 0 };
   current.quantity += 1;
   state.cart.set(productId, current);
+  saveCart();
   renderCart();
   openCart();
 }
@@ -764,6 +797,7 @@ function updateCartQuantity(productId, delta) {
 
   item.quantity += delta;
   if (item.quantity <= 0) state.cart.delete(productId);
+  saveCart();
   renderCart();
 }
 
@@ -774,7 +808,16 @@ function renderCart() {
 
   if (els.cartCount) els.cartCount.textContent = String(itemCount);
   if (els.cartTotal) els.cartTotal.textContent = formatMoney(total);
-  document.getElementById("cart-checkout")?.setAttribute("disabled", "");
+  if (els.cartCheckout) {
+    els.cartCheckout.disabled = !items.length;
+    els.cartCheckout.classList.toggle("btn--disabled", !items.length);
+    els.cartCheckout.classList.toggle("btn--primary", Boolean(items.length));
+  }
+  if (els.cartCheckoutStatus) {
+    els.cartCheckoutStatus.textContent = items.length
+      ? "Sign in at checkout so this order can be tracked from your profile."
+      : "";
+  }
 
   if (!els.cartItems) return;
   if (!items.length) {
@@ -801,6 +844,109 @@ function renderCart() {
       </article>
     `;
   }).join("");
+  renderCheckout();
+}
+
+function handleCheckoutClick() {
+  const items = [...state.cart.values()];
+  if (!items.length) return;
+  saveCart();
+
+  if (!state.customer) {
+    window.location.href = "account.html?next=checkout.html";
+    return;
+  }
+
+  window.location.href = "checkout.html";
+}
+
+function saveCart() {
+  const items = [...state.cart.values()].map(({ product, quantity }) => ({
+    id: product.id,
+    sku: product.sku || "",
+    name: product.name || "",
+    imageUrl: product.imageUrl || "",
+    price: moneyNumber(product.price),
+    quantity,
+  }));
+  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+}
+
+function loadCart() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
+    if (!Array.isArray(saved)) return;
+    saved.forEach((item) => {
+      if (!item?.id || !Number.isFinite(Number(item.quantity))) return;
+      state.cart.set(item.id, {
+        product: {
+          id: item.id,
+          sku: item.sku || "",
+          name: item.name || "Saved product",
+          imageUrl: item.imageUrl || "",
+          price: moneyNumber(item.price),
+        },
+        quantity: Math.max(1, Number(item.quantity)),
+      });
+    });
+  } catch {
+    localStorage.removeItem(CART_STORAGE_KEY);
+  }
+}
+
+function renderCheckout() {
+  if (!els.checkoutAuthRequired && !els.checkoutWorkspace) return;
+
+  const items = [...state.cart.values()];
+  const user = state.customer;
+  const hasItems = items.length > 0;
+  const securityReady = user ? customerCanCheckout(user) : false;
+
+  els.checkoutAuthRequired?.classList.toggle("is-hidden", Boolean(user));
+  els.checkoutSecurityRequired?.classList.toggle("is-hidden", !user || securityReady);
+  els.checkoutWorkspace?.classList.toggle("is-hidden", !user || !securityReady);
+
+  if (els.checkoutSecurityStatus && user && !securityReady) {
+    const enrolledFactors = multiFactor(user).enrolledFactors || [];
+    const hasTotp = enrolledFactors.some((factor) => factor.factorId === "totp");
+    const missing = [
+      user.emailVerified ? "" : "verified email",
+      hasTotp ? "" : "authenticator app MFA",
+    ].filter(Boolean);
+    setStatus(els.checkoutSecurityStatus, `Missing: ${missing.join(" and ")}.`, "error");
+  }
+
+  if (els.checkoutName && user?.displayName) els.checkoutName.value = user.displayName;
+
+  if (els.checkoutItems) {
+    if (!hasItems) {
+      els.checkoutItems.innerHTML = `<div class="empty-card">Your cart is empty. <a href="shop.html">Return to shop</a>.</div>`;
+    } else {
+      els.checkoutItems.innerHTML = items.map(({ product, quantity }) => `
+        <article class="checkout-item">
+          <div class="cart-item__image">
+            ${product.imageUrl ? `<img src="${escapeAttr(product.imageUrl)}" alt="${escapeAttr(product.name)}">` : `<span>${escapeHtml(initials(product.name))}</span>`}
+          </div>
+          <div>
+            <h3>${escapeHtml(product.name)}</h3>
+            <p>${escapeHtml(product.sku || product.id)} · Qty ${quantity}</p>
+          </div>
+          <strong>${formatMoney(moneyNumber(product.price) * quantity)}</strong>
+        </article>
+      `).join("");
+    }
+  }
+
+  const itemCount = items.reduce((total, item) => total + item.quantity, 0);
+  const total = items.reduce((sum, item) => sum + moneyNumber(item.product.price) * item.quantity, 0);
+  if (els.checkoutItemCount) els.checkoutItemCount.textContent = String(itemCount);
+  if (els.checkoutSubtotal) els.checkoutSubtotal.textContent = formatMoney(total);
+}
+
+function customerCanCheckout(user) {
+  if (!user) return false;
+  const enrolledFactors = multiFactor(user).enrolledFactors || [];
+  return Boolean(user.emailVerified && enrolledFactors.some((factor) => factor.factorId === "totp"));
 }
 
 function openCart() {

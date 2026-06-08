@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rush Hour Beauty Checkout - Secure Website Order</title>
+  <meta name="description" content="Secure checkout for Rush Hour Beauty website orders.">
+  <meta name="robots" content="noindex,follow">
+  <link rel="canonical" href="https://rushhourbeauty.co.za/checkout.html">
+  <link rel="icon" type="image/png" href="assets/images/rhbLogo.jpg">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-row">
+      <a class="brand" href="index.html" aria-label="Rush Hour Beauty home">
+        <img src="assets/images/rhbLogo.jpg" alt="Rush Hour Beauty logo" class="brand__img">
+        <span class="brand__name">Rush Hour Beauty</span>
+      </a>
+
+      <nav class="nav" aria-label="Primary navigation">
+        <a href="index.html">Home</a>
+        <a href="shop.html">Shop</a>
+        <a href="delivery.html">Quick Commerce</a>
+        <a href="socials.html">Socials</a>
+        <a href="account.html" id="account-nav-link">Account</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <section class="checkout-section" aria-labelledby="checkout-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Secure checkout</p>
+          <h1 id="checkout-title">Complete your website order</h1>
+          <p>Sign in to protect your order details and keep tracking available from your profile.</p>
+        </div>
+
+        <div class="checkout-guard reveal" id="checkout-auth-required">
+          <article class="account-card account-card--wide">
+            <h2>Sign in to continue</h2>
+            <p>Your cart is saved. Sign in or create an account so this order can be linked to your profile and tracking history.</p>
+            <a class="btn btn--primary" href="account.html?next=checkout.html">Sign in or create account</a>
+          </article>
+        </div>
+
+        <div class="checkout-guard reveal is-hidden" id="checkout-security-required">
+          <article class="account-card account-card--wide">
+            <h2>Secure your account first</h2>
+            <p>Website checkout requires a verified email and authenticator-app MFA before order details can be stored against your profile.</p>
+            <a class="btn btn--primary" href="account.html?next=checkout.html">Open account security</a>
+            <p class="status" id="checkout-security-status" role="status"></p>
+          </article>
+        </div>
+
+        <div class="checkout-layout reveal is-hidden" id="checkout-workspace">
+          <div class="checkout-main">
+            <article class="checkout-card">
+              <div class="checkout-step">
+                <span>1</span>
+                <div>
+                  <h2>Delivery details</h2>
+                  <p>Courier delivery times may vary. We will use these details for website orders only.</p>
+                </div>
+              </div>
+              <form class="checkout-form" id="checkout-form">
+                <label for="checkout-name">Full name</label>
+                <input id="checkout-name" name="name" type="text" autocomplete="name" required>
+
+                <label for="checkout-phone">Mobile number</label>
+                <input id="checkout-phone" name="phone" type="tel" autocomplete="tel" required>
+
+                <label for="checkout-address">Delivery address</label>
+                <textarea id="checkout-address" name="address" autocomplete="street-address" required></textarea>
+
+                <label for="checkout-notes">Delivery notes</label>
+                <textarea id="checkout-notes" name="notes" placeholder="Optional"></textarea>
+              </form>
+            </article>
+
+            <article class="checkout-card">
+              <div class="checkout-step">
+                <span>2</span>
+                <div>
+                  <h2>Order tracking</h2>
+                  <p>Once payment and order creation are enabled, this order will appear in your profile with live status updates.</p>
+                </div>
+              </div>
+              <div class="tracking-preview">
+                <div class="tracking-step is-current">
+                  <strong>Cart reviewed</strong>
+                  <span>Ready for secure checkout</span>
+                </div>
+                <div class="tracking-step">
+                  <strong>Payment</strong>
+                  <span>Coming next</span>
+                </div>
+                <div class="tracking-step">
+                  <strong>Courier delivery</strong>
+                  <span>Tracked from profile</span>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <aside class="checkout-summary" aria-labelledby="checkout-summary-title">
+            <h2 id="checkout-summary-title">Order summary</h2>
+            <div class="checkout-items" id="checkout-items"></div>
+            <div class="summary-line">
+              <span>Items</span>
+              <strong id="checkout-item-count">0</strong>
+            </div>
+            <div class="summary-line">
+              <span>Subtotal</span>
+              <strong id="checkout-subtotal">R 0.00</strong>
+            </div>
+            <div class="summary-line">
+              <span>Courier fee</span>
+              <strong>Calculated later</strong>
+            </div>
+            <button class="btn btn--disabled" id="checkout-place-order" type="button" disabled>Payment coming soon</button>
+            <p class="cart-note">Payment and order creation will be connected next. Your account/cart flow is ready.</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="brand">
+        <img src="assets/images/rhbLogo.jpg" alt="Rush Hour Beauty logo" class="brand__img">
+        <span class="brand__name">Rush Hour Beauty</span>
+      </div>
+      <p>High-performing beauty for busy lives. Fair pricing, fast delivery, and elevated service.</p>
+      <small>&copy; <span id="year"></span> Rush Hour Beauty. All rights reserved.</small>
+    </div>
+  </footer>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
